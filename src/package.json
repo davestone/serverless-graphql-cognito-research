@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "amazon-cognito-identity-js": "^1.11.0",
+    "babel-polyfill": "^6.20.0",
+    "graphql": "^0.8.2",
+    "graphql-dynamodb-connections": "^1.0.2",
+    "graphql-relay": "^0.4.4",
+    "jsonwebtoken": "^7.2.1",
+    "jwk-to-pem": "^1.2.6",
+    "node-uuid": "^1.4.7"
+  }
+}

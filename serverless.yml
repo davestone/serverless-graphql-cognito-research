@@ -1,0 +1,124 @@
+
+service: foo-backend
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  stage: staging
+  region: us-east-1
+  timeout: 10
+  memorySize: 512
+  environment:
+    DEBUG: ${env:DEBUG}
+    CORS_ACAO: http://localhost:8080
+    DYNAMO_FOOBARS: { "Ref": "DynamoFooBars" }
+    DYNAMO_REGION: ${env:DYNAMO_REGION}
+    COGNITO_USER_POOL_ID: ${env:COGNITO_USER_POOL_ID}
+    COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    COGNITO_REGION: ${env:COGNITO_REGION}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:*"
+      Resource: "*"
+
+
+plugins:
+  - serverless-offline
+
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  authorizer:
+    users:
+      name: authorizerUser
+      type: TOKEN
+      identitySource: method.request.header.Authorization
+      identityValidationExpression: Bearer (.*)
+
+  dependencies:
+    api:
+      include:
+        - dist/**
+
+
+package:
+  exclude:
+    - bin/**
+    - node_modules/**
+    - src/**
+    - tests/**
+    - cloudformation-resource.json
+    - package.json
+    - serverless.yml
+  include:
+    - dist/**
+
+
+resources:
+  Resources: ${file(cloudformation-resources.json)}
+
+
+functions:
+  authorizerUser:
+    handler: dist/authorizer.user
+  graphql:
+    handler: dist/graphql/handler.graphql
+    events:
+      - http:
+          path: graphql
+          cors: true
+          method: post
+          authorizer: ${self:custom.authorizer.users}
+  usersUnauthenticated:
+    handler: dist/users/handler.unauthenticated
+    events:
+      - http:
+          path: users/accounts
+          cors: true
+          method: post
+      - http:
+          path: users/sessions
+          cors: true
+          method: post
+      - http:
+          path: users/reset-passwords
+          cors: true
+          method: post
+      - http:
+          path: users/reset-passwords
+          cors: true
+          method: patch
+  usersAuthenticated:
+    handler: dist/users/handler.authenticated
+    events:
+      - http:
+          path: users/accounts
+          cors: true
+          method: delete
+          authorizer: ${self:custom.authorizer.users}
+      - http:
+          path: users/accounts
+          cors: true
+          method: patch
+          authorizer: ${self:custom.authorizer.users}
+      - http:
+          path: users/verify
+          cors: true
+          method: post
+          authorizer: ${self:custom.authorizer.users}
+      - http:
+          path: users/verify
+          cors: true
+          method: patch
+          authorizer: ${self:custom.authorizer.users}
+      - http:
+          path: users/passwords
+          cors: true
+          method: patch
+          authorizer: ${self:custom.authorizer.users}
+      - http:
+          path: users/sessions
+          cors: true
+          method: delete
+          authorizer: ${self:custom.authorizer.users}

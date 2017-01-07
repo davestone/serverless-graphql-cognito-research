@@ -1,0 +1,18 @@
+{
+  "DynamoFooBars": {
+    "Type": "AWS::DynamoDB::Table",
+    "Properties": {
+      "TableName": "${self:service}-${self:custom.stage}-foobars",
+      "KeySchema": {
+        "HashKeyElement": {
+          "AttributeName": "i",
+          "AttributeType": "S"
+        }
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 1,
+        "WriteCapacityUnits": 1
+      }
+    }
+  }
+}
